@@ -10,13 +10,17 @@ jobs:
       image: hashicorp/terraform:latest
 
     env:
-      TF_API_TOKEN: ${{ secrets.TF_API_TOKEN }}              # Terraform Cloud API token
-      TF_VAR_gcp_credentials: ${{ secrets.GCP_CREDENTIALS }} # GCP service account JSON
-      TF_VAR_project: "project-composer-476710"                # Replace with your GCP project ID
+      TF_VAR_gcp_credentials: ${{ secrets.GCP_CREDENTIALS }}   # GCP service account JSON
+      TF_VAR_project: project-composer-476710                  # Replace with your GCP project ID
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
+
+      - name: Configure Terraform Cloud credentials
+        run: |
+          mkdir -p ~/.terraform.d
+          echo '{"credentials":{"app.terraform.io":{"token":"${{ secrets.TF_API_TOKEN }}"}}}' > ~/.terraform.d/credentials.tfrc.json
 
       - name: Verify Terraform version
         run: terraform --version
