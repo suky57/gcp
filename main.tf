@@ -1,11 +1,23 @@
 terraform {
+  cloud {
+    organization = "test-krajo"
+    workspaces {
+      name = "test-krajo"
+    }
+  }
+
   required_providers {
     google = {
       source  = "hashicorp/google"
       version = "~> 5.0"
     }
+    random = {
+      source  = "hashicorp/random"
+      version = "~> 3.0"
+    }
   }
 }
+
 
 provider "google" {
   project = "project-composer-476710"
