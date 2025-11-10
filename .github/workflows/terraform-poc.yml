@@ -1,15 +1,23 @@
 name: Trigger Terraform Cloud Run
 
 on:
-  workflow_dispatch:
+  workflow_dispatch: # Manual trigger
+  push:              # Or any other event you want
 
 jobs:
-  trigger-tfc:
+  terraform-run:
     runs-on: ubuntu-latest
-
     steps:
-      - name: Checkout repository
+      - name: Checkout
         uses: actions/checkout@v3
+
+      - name: Get Workspace ID
+        run: |
+          WORKSPACE_ID=$(curl -s \
+            --header "Authorization: Bearer ${{ secrets.TF_API_TOKEN }}" \
+            https://app.terraform.io/api/v2/organizations/${{ secrets.TF_ORG }}/workspaces/${{ secrets.TF_WORKSPACE }} | jq -r '.data.id')
+          echo "Workspace ID: $WORKSPACE_ID"
+          echo "WORKSPACE_ID=$WORKSPACE_ID" >> $GITHUB_ENV
 
       - name: Trigger Terraform Cloud Run
         run: |
@@ -17,21 +25,21 @@ jobs:
             --header "Authorization: Bearer ${{ secrets.TF_API_TOKEN }}" \
             --header "Content-Type: application/vnd.api+json" \
             --request POST \
-            --data '{
-              "data": {
-                "attributes": {
-                  "is-destroy": false,
-                  "message": "Triggered by GitHub Actions"
+            --data "{
+              \"data\": {
+                \"attributes\": {
+                  \"is-destroy\": false,
+                  \"message\": \"Triggered by GitHub Actions\"
                 },
-                "type": "runs",
-                "relationships": {
-                  "workspace": {
-                    "data": {
-                      "type": "workspaces",
-                      "id": "org-nP8b31mSCMiiY7ZZ"
+                \"type\": \"runs\",
+                \"relationships\": {
+                  \"workspace\": {
+                    \"data\": {
+                      \"type\": \"workspaces\",
+                      \"id\": \"${WORKSPACE_ID}\"
                     }
                   }
                 }
               }
-            }' \
-            https://app.terraform.io/api/v2/runs
+            }" \
+            https://app.terraform.io/api/v2/runs -v
