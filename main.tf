@@ -1,11 +1,4 @@
 terraform {
-  cloud {
-    organization = "test-krajo"
-    workspaces {
-      name = "test-krajo"
-    }
-  }
-
   required_providers {
     google = {
       source  = "hashicorp/google"
@@ -18,18 +11,17 @@ terraform {
   }
 }
 
-
 provider "google" {
-  project = "project-composer-476710"
-  region  = "europe-west4"
-  credentials = jsondecode(env("GCP_CREDENTIALS"))
+  project     = var.project
+  region      = "europe-west4"
+  credentials = jsondecode(var.gcp_credentials)
+}
+
+resource "random_id" "suffix" {
+  byte_length = 4
 }
 
 resource "google_storage_bucket" "poc_bucket" {
   name     = "poc-test-bucket-${random_id.suffix.hex}"
   location = "europe-west4"
-}
-
-resource "random_id" "suffix" {
-  byte_length = 4
 }
